@@ -403,17 +403,17 @@ static uint8_t USBD_HID_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);
 
-  /* Close HID EPs */
-  pdev->ep_in[1].bInterval = 0U;
-  pdev->ep_out[1].bInterval = 0U;
-  pdev->ep_in[2].bInterval = 0U;
-  pdev->ep_out[3].bInterval = 0U;
 
   /* Open EP IN */
   (void)USBD_LL_CloseEP(pdev, HID_KB_EPIN_ADDR);
   (void)USBD_LL_CloseEP(pdev, HID_KB_EPOUT_ADDR);
   (void)USBD_LL_CloseEP(pdev, HID_MOUSE_EPIN_ADDR);
   (void)USBD_LL_CloseEP(pdev, HID_CKM_EPOUT_ADDR);
+/* Close HID EPs */
+pdev->ep_in[1].bInterval = 0U;
+pdev->ep_out[1].bInterval = 0U;
+pdev->ep_in[2].bInterval = 0U;
+pdev->ep_out[3].bInterval = 0U;
   pdev->ep_in[1].is_used = 0U;
   pdev->ep_out[1].is_used = 0U;
   pdev->ep_in[2].is_used = 0U;
