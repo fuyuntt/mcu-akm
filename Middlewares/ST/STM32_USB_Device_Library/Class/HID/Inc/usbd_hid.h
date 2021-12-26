@@ -67,7 +67,7 @@ extern "C" {
 /* 键盘报告描述符大小 */
 #define HID_KB_REPORT_DESC_SIZE                    63U
 /* 控制报告描述符大小 */
-#define HID_CUSTOM_REPORT_DESC_SIZE                20U
+#define HID_CUSTOM_REPORT_DESC_SIZE                21U
 
 #define HID_DESCRIPTOR_TYPE                        0x21U
 #define HID_REPORT_DESC                            0x22U

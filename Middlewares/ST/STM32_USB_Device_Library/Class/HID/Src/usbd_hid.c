@@ -330,16 +330,16 @@ __ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[HID_MOUSE_REPORT_DESC_SIZE] __
 
 __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[HID_CUSTOM_REPORT_DESC_SIZE] __ALIGN_END =
 {
-0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
-0x09, 0x00,                    // USAGE (Undefined)
-0xa1, 0x01,                    // COLLECTION (Application)
-0x09, 0x00,                    //   USAGE (Undefined)
-0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
-0x26, 0xff, 0x00,              //   LOGICAL_MAXIMUM (255)
-0x75, 0x08,                    //   REPORT_SIZE (8)
-0x95, 0x09,                    //   REPORT_COUNT (9)
-0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
-0xc0                           // END_COLLECTION
+        0x06, 0x00, 0xff,              // USAGE_PAGE (Vendor Defined Page 1)
+        0x09, 0x01,                    // USAGE (Vendor Usage 1)
+        0xa1, 0x01,                    // COLLECTION (Application)
+        0x09, 0x01,                    //   USAGE (Vendor Usage 1)
+        0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+        0x26, 0xff, 0x00,              //   LOGICAL_MAXIMUM (255)
+        0x75, 0x08,                    //   REPORT_SIZE (8)
+        0x95, 0x09,                    //   REPORT_COUNT (9)
+        0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
+        0xc0                           // END_COLLECTION
 };
 /**
   * @}
