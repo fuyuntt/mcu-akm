@@ -349,6 +349,8 @@ __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[HID_CUSTOM_REPORT_DESC_SIZE] 
   * @{
   */
 
+static uint8_t dataBuf[9];
+static uint8_t kbLed[1];
 /**
   * @brief  USBD_HID_Init
   *         Initialize the HID interface
@@ -387,7 +389,9 @@ static uint8_t USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   pdev->ep_in[2].is_used = 1U;
   pdev->ep_out[3].is_used = 1U;
 
-  hhid->state = HID_IDLE;
+    USBD_LL_PrepareReceive(pdev, HID_CKM_EPOUT_ADDR, dataBuf, HID_CKM_EPOUT_SIZE);
+    USBD_LL_PrepareReceive(pdev, HID_KB_EPOUT_ADDR, kbLed, HID_KB_EPOUT_SIZE);
+    hhid->state = HID_IDLE;
 
   return (uint8_t)USBD_OK;
 }
@@ -653,25 +657,22 @@ static uint8_t USBD_HID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
   return (uint8_t)USBD_OK;
 }
 
-static uint8_t dataBuf[9];
 static uint8_t USBD_HID_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     if (epnum == HID_CKM_EPOUT_ADDR) {
-        USBD_LL_PrepareReceive(pdev, epnum, dataBuf, HID_CKM_EPOUT_SIZE);
         if (dataBuf[0] == 1) {
             USBD_HID_SendReport(pdev, HID_KB_EPIN_ADDR, dataBuf+1, HID_KB_EPIN_SIZE);
         } else if (dataBuf[0] == 2) {
             USBD_HID_SendReport(pdev, HID_MOUSE_EPIN_ADDR, dataBuf+1, HID_MOUSE_EPIN_SIZE);
         }
+        USBD_LL_PrepareReceive(pdev, HID_CKM_EPOUT_ADDR, dataBuf, HID_CKM_EPOUT_SIZE);
     } else if (epnum == HID_KB_EPOUT_ADDR) {
-        uint8_t kbLed;
-        USBD_LL_PrepareReceive(pdev, epnum, &kbLed, HID_KB_EPOUT_SIZE);
-//        if (kbLed) {
-//            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-//        } else {
-//            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-//        }
+        if (kbLed[0]&0x2) {
+            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+        } else {
+            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+        }
+        USBD_LL_PrepareReceive(pdev, HID_KB_EPOUT_ADDR, kbLed, HID_KB_EPOUT_SIZE);
     }
     /* Ensure that the FIFO is empty before a new transfer, this condition could
     be caused by  a new transfer before the end of the previous transfer */
