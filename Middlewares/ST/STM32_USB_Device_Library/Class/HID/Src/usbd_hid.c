@@ -114,7 +114,7 @@ USBD_ClassTypeDef USBD_HID =
   NULL,              /* EP0_TxSent */
   NULL,              /* EP0_RxReady */
   USBD_HID_DataIn,   /* DataIn */
-  USBD_HID_DataOut,              /* DataOut */
+  NULL,              /* DataOut */
   NULL,              /* SOF */
   NULL,
   NULL,
@@ -219,7 +219,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgFSDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN
   USB_DESC_TYPE_INTERFACE,                            /* bDescriptorType: Interface descriptor type */
   0x02,                                               /* bInterfaceNumber: Number of Interface */
   0x00,                                               /* bAlternateSetting: Alternate setting */
-  0x02,                                               /* bNumEndpoints */
+  0x01,                                               /* bNumEndpoints */
   0x03,                                               /* bInterfaceClass: HID */
   0x00,                                               /* bInterfaceSubClass : 1=BOOT, 0=no boot */
   0x00,                                               /* nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse */
@@ -234,22 +234,13 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgFSDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN
   0x22,                                               /* bDescriptorType */
   HID_CUSTOM_REPORT_DESC_SIZE&0xFF,                    /* wItemLength: Total length of Report descriptor */
   (HID_CUSTOM_REPORT_DESC_SIZE>>8)&0xFF,
-/******************** Descriptor of self defined kb endpoint ********************/
+/******************** Descriptor of self defined endpoint ********************/
   0x07,                                               /* bLength: Endpoint Descriptor size */
   USB_DESC_TYPE_ENDPOINT,                             /* bDescriptorType:*/
 
-  HID_CKB_EPOUT_ADDR,                                      /* bEndpointAddress: Endpoint Address (IN) */
+  HID_CKM_EPOUT_ADDR,                                      /* bEndpointAddress: Endpoint Address (IN) */
   0x03,                                               /* bmAttributes: Interrupt endpoint */
-  HID_CKB_EPOUT_SIZE,                                      /* wMaxPacketSize  */
-  0x00,
-  HID_FS_BINTERVAL,                                   /* bInterval: Polling Interval */
-  /*********************** descriptor of self defined mouse endpoint ****************/
-  0x07,                                               /* bLength: Endpoint Descriptor size */
-  USB_DESC_TYPE_ENDPOINT,                             /* bDescriptorType:*/
-
-  HID_CMO_EPOUT_ADDR,                                      /* bEndpointAddress: Endpoint Address (IN) */
-  0x03,                                               /* bmAttributes: Interrupt endpoint */
-  HID_CMO_EPOUT_SIZE,                                      /* wMaxPacketSize  */
+  HID_CKM_EPOUT_SIZE,                                      /* wMaxPacketSize  */
   0x00,
   HID_FS_BINTERVAL,                                   /* bInterval: Polling Interval */
 };
@@ -311,7 +302,6 @@ __ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[HID_MOUSE_REPORT_DESC_SIZE] __
         0x05, 0x01, // USAGE_PAGE (Generic Desktop)
         0x09, 0x02, // USAGE (Mouse)
         0xa1, 0x01, // COLLECTION (Application)
-        0x85, 0x01, //Report ID (1)
         0x09, 0x01, //   USAGE (Pointer)
         0xa1, 0x00, //   COLLECTION (Physical)
         0x05, 0x09, //     USAGE_PAGE (Button)
@@ -347,7 +337,7 @@ __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[HID_CUSTOM_REPORT_DESC_SIZE] 
 0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
 0x26, 0xff, 0x00,              //   LOGICAL_MAXIMUM (255)
 0x75, 0x08,                    //   REPORT_SIZE (8)
-0x95, 0x08,                    //   REPORT_COUNT (8)
+0x95, 0x09,                    //   REPORT_COUNT (9)
 0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
 0xc0                           // END_COLLECTION
 };
@@ -386,19 +376,16 @@ static uint8_t USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   pdev->ep_out[1].bInterval = HID_FS_BINTERVAL;
   pdev->ep_in[2].bInterval = HID_FS_BINTERVAL;
   pdev->ep_out[3].bInterval = HID_FS_BINTERVAL;
-  pdev->ep_out[4].bInterval = HID_FS_BINTERVAL;
 
   /* Open EP IN */
   (void)USBD_LL_OpenEP(pdev, HID_KB_EPIN_ADDR, USBD_EP_TYPE_INTR, HID_KB_EPIN_SIZE);
   (void)USBD_LL_OpenEP(pdev, HID_KB_EPOUT_ADDR, USBD_EP_TYPE_INTR, HID_KB_EPOUT_SIZE);
   (void)USBD_LL_OpenEP(pdev, HID_MOUSE_EPIN_ADDR, USBD_EP_TYPE_INTR, HID_MOUSE_EPIN_SIZE);
-  (void)USBD_LL_OpenEP(pdev, HID_CKB_EPOUT_ADDR, USBD_EP_TYPE_INTR, HID_CKB_EPOUT_SIZE);
-  (void)USBD_LL_OpenEP(pdev, HID_CMO_EPOUT_ADDR, USBD_EP_TYPE_INTR, HID_CMO_EPOUT_SIZE);
+  (void)USBD_LL_OpenEP(pdev, HID_CKM_EPOUT_ADDR, USBD_EP_TYPE_INTR, HID_CKM_EPOUT_SIZE);
   pdev->ep_in[1].is_used = 1U;
   pdev->ep_out[1].is_used = 1U;
   pdev->ep_in[2].is_used = 1U;
   pdev->ep_out[3].is_used = 1U;
-  pdev->ep_out[4].is_used = 1U;
 
   hhid->state = HID_IDLE;
 
@@ -421,19 +408,16 @@ static uint8_t USBD_HID_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   pdev->ep_out[1].bInterval = 0U;
   pdev->ep_in[2].bInterval = 0U;
   pdev->ep_out[3].bInterval = 0U;
-  pdev->ep_out[4].bInterval = 0U;
 
   /* Open EP IN */
   (void)USBD_LL_CloseEP(pdev, HID_KB_EPIN_ADDR);
   (void)USBD_LL_CloseEP(pdev, HID_KB_EPOUT_ADDR);
   (void)USBD_LL_CloseEP(pdev, HID_MOUSE_EPIN_ADDR);
-  (void)USBD_LL_CloseEP(pdev, HID_CKB_EPOUT_ADDR);
-  (void)USBD_LL_CloseEP(pdev, HID_CMO_EPOUT_ADDR);
+  (void)USBD_LL_CloseEP(pdev, HID_CKM_EPOUT_ADDR);
   pdev->ep_in[1].is_used = 0U;
   pdev->ep_out[1].is_used = 0U;
   pdev->ep_in[2].is_used = 0U;
   pdev->ep_out[3].is_used = 0U;
-  pdev->ep_out[4].is_used = 0U;
   /* Free allocated memory */
   if (pdev->pClassData != NULL)
   {
@@ -590,7 +574,7 @@ static uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *re
   * @param  buff: pointer to report
   * @retval status
   */
-uint8_t USBD_HID_TransmitReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len)
+uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len)
 {
   USBD_HID_HandleTypeDef *hhid = (USBD_HID_HandleTypeDef *)pdev->pClassData;
 
@@ -653,10 +637,7 @@ static uint8_t *USBD_HID_GetFSCfgDesc(uint16_t *length)
   return USBD_HID_CfgFSDesc;
 }
 
-static uint8_t kbBuf[8];
-static char kbBufReady = 0;
-static uint8_t moBuf[8];
-static char moBufReady = 0;
+static uint8_t dataBuf[9]={1, 80, 0, 0, 0, 0, 0, 0, 0};
 
 /**
   * @brief  USBD_HID_DataIn
@@ -667,18 +648,17 @@ static char moBufReady = 0;
   */
 static uint8_t USBD_HID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-  if (epnum == HID_KB_EPIN_ADDR) {
-      if (kbBufReady) {
-          USBD_HID_TransmitReport(pdev, epnum, kbBuf, HID_CKB_EPOUT_SIZE);
-          kbBufReady = 0;
-      }
-  } else if (epnum == HID_MOUSE_EPIN_ADDR) {
-      if (moBufReady) {
-          USBD_HID_TransmitReport(pdev, epnum, moBuf, HID_CMO_EPOUT_SIZE);
-          moBufReady = 0;
-      }
-  }
-//    USBD_HID_SendReport(pdev, epnum, )
+//  if (epnum == HID_KB_EPIN_ADDR) {
+//      if (dataBuf[0]==1) {
+//          USBD_HID_SendReport(pdev, epnum, dataBuf+1, HID_KB_EPIN_SIZE);
+////          dataBuf[0] = 0;
+//      }
+//  } else if (epnum == HID_MOUSE_EPIN_ADDR) {
+//      if (dataBuf[0]==2) {
+//          USBD_HID_SendReport(pdev, epnum, dataBuf+1, HID_MOUSE_EPIN_SIZE);
+////          dataBuf[0] = 0;
+//      }
+//  }
   /* Ensure that the FIFO is empty before a new transfer, this condition could
   be caused by  a new transfer before the end of the previous transfer */
   ((USBD_HID_HandleTypeDef *)pdev->pClassData)->state = HID_IDLE;
@@ -688,12 +668,8 @@ static uint8_t USBD_HID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 
 static uint8_t USBD_HID_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-    if (epnum == HID_CKB_EPOUT_ADDR) {
-        USBD_HID_TransmitReport(pdev, epnum, kbBuf, HID_CKB_EPOUT_SIZE);
-        kbBufReady = 1;
-    } else if (epnum == HID_CMO_EPOUT_ADDR) {
-        USBD_HID_TransmitReport(pdev, epnum, moBuf, HID_CMO_EPOUT_SIZE);
-        moBufReady = 1;
+    if (epnum == HID_CKM_EPOUT_ADDR) {
+//        USBD_HID_SendReport(pdev, epnum, dataBuf, HID_CKM_EPOUT_SIZE);
     }
 
     /* Ensure that the FIFO is empty before a new transfer, this condition could

@@ -20,7 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-
+#include "usbd_hid.h"
+extern USBD_HandleTypeDef hUsbDeviceFS;
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -88,7 +89,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
+    uint8_t buf[4]={0, 10, 0, 0};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -96,7 +97,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+      USBD_HID_SendReport(&hUsbDeviceFS, HID_MOUSE_EPIN_ADDR, buf, HID_MOUSE_EPIN_SIZE);
+      HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

@@ -53,19 +53,17 @@ extern "C" {
 #define HID_MOUSE_EPIN_SIZE                           0x04U
 
 /* 控制键鼠端点 */
-#define HID_CKB_EPOUT_ADDR                              0x03U
-#define HID_CKB_EPOUT_SIZE                              0x08U
-#define HID_CMO_EPOUT_ADDR                              0x04U
-#define HID_CMO_EPOUT_SIZE                              0x04U
+#define HID_CKM_EPOUT_ADDR                              0x03U
+#define HID_CKM_EPOUT_SIZE                              0x09U
 
-#define USB_HID_CONFIG_DESC_SIZ                    98U
+#define USB_HID_CONFIG_DESC_SIZ                    91U
 #define USB_HID_DESC_SIZ                           9U
 #define USB_KB_OFF_HID_DESC                        18U
 #define USB_MOUSE_OFF_HID_DESC                     50U
 #define USB_CUSTOM_OFF_HID_DESC                    75U
 
 /* 鼠标报告描述符大小 */
-#define HID_MOUSE_REPORT_DESC_SIZE                 54U
+#define HID_MOUSE_REPORT_DESC_SIZE                 52U
 /* 键盘报告描述符大小 */
 #define HID_KB_REPORT_DESC_SIZE                    63U
 /* 控制报告描述符大小 */
@@ -137,7 +135,7 @@ extern USBD_ClassTypeDef USBD_HID;
 /** @defgroup USB_CORE_Exported_Functions
   * @{
   */
-uint8_t USBD_HID_TransmitReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len);
+uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len);
 
 uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev);
 
