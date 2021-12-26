@@ -114,7 +114,7 @@ USBD_ClassTypeDef USBD_HID =
   NULL,              /* EP0_TxSent */
   NULL,              /* EP0_RxReady */
   USBD_HID_DataIn,   /* DataIn */
-  NULL,              /* DataOut */
+ USBD_HID_DataOut,              /* DataOut */
   NULL,              /* SOF */
   NULL,
   NULL,
@@ -574,7 +574,7 @@ static uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *re
   * @param  buff: pointer to report
   * @retval status
   */
-uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len)
+USBD_StatusTypeDef USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len)
 {
   USBD_HID_HandleTypeDef *hhid = (USBD_HID_HandleTypeDef *)pdev->pClassData;
 
@@ -588,11 +588,11 @@ uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *r
     if (hhid->state == HID_IDLE)
     {
       hhid->state = HID_BUSY;
-      (void)USBD_LL_Transmit(pdev, epAddr, report, len);
+      return USBD_LL_Transmit(pdev, epAddr, report, len);
     }
   }
 
-  return (uint8_t)USBD_OK;
+  return USBD_OK;
 }
 
 /**
@@ -637,8 +637,6 @@ static uint8_t *USBD_HID_GetFSCfgDesc(uint16_t *length)
   return USBD_HID_CfgFSDesc;
 }
 
-static uint8_t dataBuf[9]={1, 80, 0, 0, 0, 0, 0, 0, 0};
-
 /**
   * @brief  USBD_HID_DataIn
   *         handle data IN Stage
@@ -648,17 +646,6 @@ static uint8_t dataBuf[9]={1, 80, 0, 0, 0, 0, 0, 0, 0};
   */
 static uint8_t USBD_HID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-//  if (epnum == HID_KB_EPIN_ADDR) {
-//      if (dataBuf[0]==1) {
-//          USBD_HID_SendReport(pdev, epnum, dataBuf+1, HID_KB_EPIN_SIZE);
-////          dataBuf[0] = 0;
-//      }
-//  } else if (epnum == HID_MOUSE_EPIN_ADDR) {
-//      if (dataBuf[0]==2) {
-//          USBD_HID_SendReport(pdev, epnum, dataBuf+1, HID_MOUSE_EPIN_SIZE);
-////          dataBuf[0] = 0;
-//      }
-//  }
   /* Ensure that the FIFO is empty before a new transfer, this condition could
   be caused by  a new transfer before the end of the previous transfer */
   ((USBD_HID_HandleTypeDef *)pdev->pClassData)->state = HID_IDLE;
@@ -666,12 +653,26 @@ static uint8_t USBD_HID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
   return (uint8_t)USBD_OK;
 }
 
+static uint8_t dataBuf[9];
 static uint8_t USBD_HID_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     if (epnum == HID_CKM_EPOUT_ADDR) {
-//        USBD_HID_SendReport(pdev, epnum, dataBuf, HID_CKM_EPOUT_SIZE);
+        USBD_LL_PrepareReceive(pdev, epnum, dataBuf, HID_CKM_EPOUT_SIZE);
+        if (dataBuf[0] == 1) {
+            USBD_HID_SendReport(pdev, HID_KB_EPIN_ADDR, dataBuf+1, HID_KB_EPIN_SIZE);
+        } else if (dataBuf[0] == 2) {
+            USBD_HID_SendReport(pdev, HID_MOUSE_EPIN_ADDR, dataBuf+1, HID_MOUSE_EPIN_SIZE);
+        }
+    } else if (epnum == HID_KB_EPOUT_ADDR) {
+        uint8_t kbLed;
+        USBD_LL_PrepareReceive(pdev, epnum, &kbLed, HID_KB_EPOUT_SIZE);
+//        if (kbLed) {
+//            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+//        } else {
+//            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+//        }
     }
-
     /* Ensure that the FIFO is empty before a new transfer, this condition could
     be caused by  a new transfer before the end of the previous transfer */
     ((USBD_HID_HandleTypeDef *)pdev->pClassData)->state = HID_IDLE;

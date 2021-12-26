@@ -46,7 +46,7 @@ extern "C" {
 #define HID_KB_EPIN_ADDR                              0x81U
 #define HID_KB_EPIN_SIZE                              0x08U
 #define HID_KB_EPOUT_ADDR                             0x01U
-#define HID_KB_EPOUT_SIZE                             0x08U
+#define HID_KB_EPOUT_SIZE                             0x01U
 
 /* 鼠标端点 */
 #define HID_MOUSE_EPIN_ADDR                           0x82U
@@ -135,7 +135,7 @@ extern USBD_ClassTypeDef USBD_HID;
 /** @defgroup USB_CORE_Exported_Functions
   * @{
   */
-uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len);
+USBD_StatusTypeDef USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t epAddr, uint8_t *report, uint16_t len);
 
 uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev);
 
