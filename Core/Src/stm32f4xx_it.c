@@ -23,8 +23,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usbd_hid.h"
-#include "usb_device.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -202,20 +201,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles EXTI line[9:5] interrupts.
-  */
-void EXTI9_5_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-
-  /* USER CODE END EXTI9_5_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
-  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
-
-  /* USER CODE END EXTI9_5_IRQn 1 */
-}
-
-/**
   * @brief This function handles USB On The Go FS global interrupt.
   */
 void OTG_FS_IRQHandler(void)
@@ -228,21 +213,8 @@ void OTG_FS_IRQHandler(void)
 
   /* USER CODE END OTG_FS_IRQn 1 */
 }
-/* USER CODE BEGIN 1 */
-uint8_t kbData[8];
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if(GPIO_Pin==GPIO_PIN_9)
-	{
-    if (!HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9)) {
-      kbData[0] |= 0x01; // ctrl 键
-      USBD_HID_SendReport(USB_getDevFs(), HID_KB_EPIN_ADDR, kbData, HID_KB_EPIN_SIZE);
-    } else {
-      kbData[0] &= ~0x01; // 释放ctrl
-      USBD_HID_SendReport(USB_getDevFs(), HID_KB_EPIN_ADDR, kbData, HID_KB_EPIN_SIZE);
-    }
 
-	}
-}
+/* USER CODE BEGIN 1 */
+
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
