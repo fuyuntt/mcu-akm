@@ -54,7 +54,9 @@ USBD_HandleTypeDef hUsbDeviceFS;
  * -- Insert your external function declaration here --
  */
 /* USER CODE BEGIN 1 */
-
+USBD_HandleTypeDef* USB_getDevFs() {
+  return &hUsbDeviceFS;
+}
 /* USER CODE END 1 */
 
 /**
